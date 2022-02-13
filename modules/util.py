@@ -33,7 +33,8 @@ def scroll_text(lcd: CharLCD, text: str, row: int = 0, interval: float = 0.5,
             break
         fragment = text.rjust(len(text) + NUM_COLUMNS)[stage:]
         while currently_processing["display_info"]:
-            continue
+            if not PROGRAM_IS_RUNNING:
+                return
         currently_processing["scroll"] = True
         lcd.cursor_pos = (row, 0)
         # Ensure string doesn't exceed the maximum length

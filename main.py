@@ -81,7 +81,8 @@ def update_display_info(lcd: CharLCD) -> None:
         # 0x00 is the hex code for the LCD's custom defined character at location 0
         temp_details = f"{humidity or -1:0.01f}% {temperature or -1:0.01f}\x00C"
         while util.currently_processing["scroll"]:
-            continue
+            if not util.PROGRAM_IS_RUNNING:
+                return
         util.currently_processing["display_info"] = True
         lcd.cursor_pos = (1, 0)
         lcd.write_string(centred(temp_details))
