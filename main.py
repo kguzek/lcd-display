@@ -73,11 +73,11 @@ def intro(lcd: CharLCD) -> None:
     # file_manager.log("Completed intro animation.")
 
 
-def update_display_info(lcd: CharLCD) -> None:
+def update_display_info(lcd: CharLCD, adafruit) -> None:
     """Adds the humidity and temperature information to the second line of the LCD."""
     while util.PROGRAM_IS_RUNNING:
         # Read the values from the GPIO-connected humidity and temperature sensor
-        humidity, temperature = Adafruit_DHT.read_retry(Adafruit_DHT.DHT22, SENSOR_PIN)
+        humidity, temperature = adafruit.read_retry(adafruit.DHT22, SENSOR_PIN)
         # 0x00 is the hex code for the LCD's custom defined character at location 0
         temp_details = f"{humidity or -1:0.01f}% {temperature or -1:0.01f}\x00C"
         while util.currently_processing["scroll"]:
@@ -90,14 +90,14 @@ def update_display_info(lcd: CharLCD) -> None:
         time.sleep(2)
 
 
-def main(lcd: CharLCD) -> None:
+def main(lcd: CharLCD, adafruit) -> None:
     """Cleans up the LCD from previous usage and keeps the display updated."""
     lcd.clear()
     lcd.home()
     # Define custom character at location 0 with the above bitmap
     lcd.create_char(0, degree_sign)
     # file_manager.log("LCD display initialised successfully!")
-    update_info_thread = threading.Thread(target=update_display_info, args=[lcd])
+    update_info_thread = threading.Thread(target=update_display_info, args=[lcd, adafruit])
 
     # When the user presses Ctrl+C (SIGIGN), Python interprets this as KeyboardInterrupt.
     # This is favourable as it can be caught in the code below (line 118).
@@ -135,5 +135,6 @@ def main(lcd: CharLCD) -> None:
         lcd.close(clear=True)
 
 if __name__ == "__main__":
+    print("Started program from main!")
     main(CharLCD(pin_rs=21, pin_rw=20,  pin_e=16, pins_data=LCD_PINS,
-         numbering_mode=GPIO.BCM, cols=16, rows=2))
+         numbering_mode=GPIO.BCM, cols=16, rows=2), Adafruit_DHT)

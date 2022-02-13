@@ -6,4 +6,7 @@ from typing import Annotated
 NUM_COLUMNS: int = 16
 
 # The number of the GPIO pin to which the humidity and temperature sensor is connected
-SENSOR_PIN = 23
+SENSOR_PIN: int = 23
+
+# A boolean indicating if the output should go to the LCD or the console
+CONSOLE_ENABLED: bool = False

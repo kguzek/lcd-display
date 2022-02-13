@@ -1,6 +1,7 @@
 """General utility functions."""
 
 # Standard library imports
+import os
 import time
 
 # Third party imports
@@ -40,9 +41,9 @@ def scroll_text(lcd: CharLCD, text: str, row: int = 0, interval: float = 0.5,
         # Ensure string doesn't exceed the maximum length
         lcd.write_string(fragment[:NUM_COLUMNS].ljust(NUM_COLUMNS))
         currently_processing["scroll"] = False
-        # Determine if the console simulator is being used
-        if CharLCD.__doc__ == "Placeholder class for the LCD.":
-            # Use faster scrolling (10 characters per second)
+
+        if os.environ.get("CONSOLE_ENABLED"):
+            # Use faster scrolling for console (10 characters per second)
             time.sleep(0.1)
         else:
             # Use slower scrolling for LCD (defaults to 2 characters per second)

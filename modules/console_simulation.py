@@ -1,9 +1,9 @@
 """Module for executing the code printing the output to the console instead of the LCD."""
 
 # Standard library imports
+import os
 import random
 import time
-
 
 class DummyAdafruitDHT:  # pylint: disable=too-few-public-methods
     """Placeholder class for the Adafruit_DHT module."""
@@ -31,7 +31,8 @@ class DummyLCD:
         self.cursor_pos = (0, 0)
         self._write = print
         self._write("\n\n")
-
+        os.environ["CONSOLE_ENABLED"] = "TRUE"
+    
 
     def write_string(self, text: str = "") -> None:
         """Writes the string to the console."""
@@ -67,4 +68,4 @@ class DummyLCD:
 
 if __name__ == "__main__":
     import main
-    main.main(DummyLCD())
+    main.main(DummyLCD(), DummyAdafruitDHT)
