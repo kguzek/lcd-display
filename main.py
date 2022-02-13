@@ -94,7 +94,7 @@ async def main() -> None:
     loop.create_task(util.scroll_text(lcd, "Pi Temperature", max_num_scrolls=0))
     loop.create_task(update_display_info())
     # Wait until all tasks have completed
-    # await asyncio.gather(*asyncio.all_tasks())
+    await asyncio.gather(*asyncio.all_tasks())
 
 
 # When the user presses Ctrl+C (SIGIGN), the Python process interprets this as KeyboardInterrupt
@@ -119,8 +119,7 @@ lcd = CharLCD(pin_rs=21, pin_rw=20,  pin_e=16, pins_data=LCD_PINS,
 loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
 try:
-    # loop.run_until_complete(main())
-    loop.run_forever(main())
+    loop.run_until_complete(main())
 except KeyboardInterrupt:
     # The user force exited the program
     print()  # Newline so log isn't on same line as user input
