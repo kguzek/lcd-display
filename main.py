@@ -7,10 +7,10 @@ import time
 import threading
 
 # Third-party imports
-import Adafruit_DHT  # pylint: disable=import-error
+import Adafruit_DHT
 from corny_commons import file_manager
-from RPi import GPIO  # pylint: disable=import-error
-from RPLCD.gpio import CharLCD  # pylint: disable=import-error
+from RPi import GPIO
+from RPLCD.gpio import CharLCD
 
 # Local application imports
 from modules import util, NUM_COLUMNS, SENSOR_PIN
@@ -72,12 +72,13 @@ def intro() -> None:
 def update_display_info() -> None:
     """Adds the humidity and temperature information to the second line of the LCD."""
     while SHOULD_UPDATE_INFO:
-        lcd.cursor_pos = (1, 0)
         # Read the values from the GPIO-connected humidity and temperature sensor
         humidity, temperature = Adafruit_DHT.read_retry(Adafruit_DHT.DHT22, SENSOR_PIN)
         # 0x00 is the hex code for the LCD's custom defined character at location 0
         temp_details = f"{humidity or -1:0.01f}%  {temperature or -1:0.01f}\x00C"
+        lcd.cursor_pos = (1, 0)
         lcd.write_string(centred(temp_details))
+        lcd.lf()
         time.sleep(2)
 
 
@@ -90,7 +91,7 @@ def main() -> None:
     file_manager.log("LCD display initialised successfully!")
     intro()
     update_info_thread.start()
-    util.scroll(lcd, "Pi Temperature")
+    util.scroll_text(lcd, "Pi Temperature")
 
 
 # When the user presses Ctrl+C (SIGIGN), the Python process interprets this as KeyboardInterrupt
@@ -102,11 +103,15 @@ def main() -> None:
 def raise_keyboard_interrupt(_signum, _stackframe) -> None:
     """Raises the signal.SIGINT signal which is interpreted as the `KeyboardInterrupt` exception."""
     signal.raise_signal(signal.SIGINT)
-    # Alternatively: `raise KeyboardInterrupt``
+    # Alternatively: `raise KeyboardInterrupt`
 
 
 # signal.SIGTSTP is a valid signal in unix-based systems; it's unsupported on Windows
-signal.signal(signal.SIGTSTP, raise_keyboard_interrupt)  # pylint: disable=no-member
+try:
+    signal.signal(signal.SIGTSTP, raise_keyboard_interrupt)  # pylint: disable=no-member
+except AttributeError:
+    # Running on Windows
+    pass
 
 SHOULD_UPDATE_INFO = True
 update_info_thread = threading.Thread(target=update_display_info)
