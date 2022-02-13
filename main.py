@@ -77,8 +77,8 @@ async def update_display_info() -> None:
     lcd.cursor_pos = (1, 0)
     humidity, temperature = Adafruit_DHT.read_retry(sensor, SENSOR_PIN)
     # 0x00 is the hex code for the LCD's custom defined character at location 0
-    lcd.write_string(
-        centred(f"{humidity or -1:0.01f}%  {temperature or -1:0.01f}\x00C"))
+    temp_details= f"{humidity or -1:0.01f}%  {temperature or -1:0.01f}\x00C"
+    lcd.write_string(centred(temp_details))
     await asyncio.sleep(2)
     await update_display_info()
 
@@ -93,6 +93,8 @@ async def main() -> None:
     await intro()
     loop.create_task(util.scroll_text(lcd, "Pi Temperature", max_num_scrolls=0))
     loop.create_task(update_display_info())
+    # Wait until all tasks have completed
+    # await asyncio.gather(*asyncio.all_tasks())
 
 
 # When the user presses Ctrl+C (SIGIGN), the Python process interprets this as KeyboardInterrupt
@@ -117,7 +119,8 @@ lcd = CharLCD(pin_rs=21, pin_rw=20,  pin_e=16, pins_data=LCD_PINS,
 loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
 try:
-    loop.run_until_complete(main())
+    # loop.run_until_complete(main())
+    loop.run_forever(main())
 except KeyboardInterrupt:
     # The user force exited the program
     print()  # Newline so log isn't on same line as user input
