@@ -1,5 +1,15 @@
-# Log files
+# Python cache for files generated during compilation
+*.pyc
+__pycache__
+
+# Local log files
 *.log
 
-# Local files
+# Local data files
 .*
+
+# Local data folders
+cache
+
+# Testing files
+test*
