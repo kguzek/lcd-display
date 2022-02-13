@@ -90,17 +90,9 @@ async def main() -> None:
     # Define custom character at location 0 with the above bitmap
     lcd.create_char(0, degree_sign)
     file_manager.log("LCD display initialised successfully!")
-    try:
-        await intro()
-        await util.scroll_text(lcd, "Pi Temperature", max_num_scrolls=0)
-        await update_display_info()
-    except KeyboardInterrupt:
-        # The user force exited the program
-        print()  # Newline so log isn't on same line as user input
-        file_manager.log("Quitting program (ctrl+c)")
-    finally:
-        # Clean up GPIO resources and clear the display
-        lcd.close(clear=True)
+    await intro()
+    loop.create_task(util.scroll_text(lcd, "Pi Temperature", max_num_scrolls=0))
+    loop.create_task(update_display_info())
 
 
 # When the user presses Ctrl+C (SIGIGN), the Python process interprets this as KeyboardInterrupt
@@ -124,4 +116,12 @@ lcd = CharLCD(pin_rs=21, pin_rw=20,  pin_e=16, pins_data=LCD_PINS,
               numbering_mode=GPIO.BCM, cols=16, rows=2)
 loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
-loop.run_until_complete(main())
+try:
+    loop.run_until_complete(main())
+except KeyboardInterrupt:
+    # The user force exited the program
+    print()  # Newline so log isn't on same line as user input
+    file_manager.log("Quitting program (ctrl+c)")
+finally:
+    # Clean up GPIO resources and clear the display
+    lcd.close(clear=True)
