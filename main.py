@@ -127,8 +127,8 @@ def main(lcd: CharLCD) -> None:
         file_manager.log("Quitting program (ctrl+c)")
     finally:
         # Clean up GPIO resources and clear the display
+        util.PROGRAM_IS_RUNNING = False
         if update_info_thread.is_alive():
-            util.PROGRAM_IS_RUNNING = False
             # Wait until the thread completes execution
             update_info_thread.join()
         lcd.close(clear=True)
