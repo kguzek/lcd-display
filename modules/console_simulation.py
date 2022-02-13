@@ -30,9 +30,12 @@ class DummyLCD:
     def __init__(self, *_args, **_kwargs) -> None:
         self.cursor_pos = (0, 0)
         self._write = print
-        self._write("\n\n")
+        top_row = f"┌{'─' * 16}┐\n"
+        mid_row = f"│{' ' * 16}│\n"
+        end_row = f"└{'─' * 16}┘"
+        self._write(top_row + mid_row * 2 + end_row, end="", flush=True)
         os.environ["CONSOLE_ENABLED"] = "TRUE"
-    
+
 
     def write_string(self, text: str = "") -> None:
         """Writes the string to the console."""
@@ -40,7 +43,7 @@ class DummyLCD:
         prev_line = "\033[F" * (2 - row)
         next_line = "\n" * (1 - row)
 
-        self._write(f"{prev_line}\033[{col + 1}G{text}{next_line}")
+        self._write(f"{prev_line}\033[{col + 2}G{text}{next_line}")
         col += len(text)
         self.cursor_pos = row, col
 

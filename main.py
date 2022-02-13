@@ -80,7 +80,8 @@ def update_display_info(lcd: CharLCD, adafruit) -> None:
         humidity, temperature = adafruit.read_retry(adafruit.DHT22, SENSOR_PIN)
         # 0x00 is the hex code for the LCD's custom defined character at location 0
         temp_details = f"{humidity or -1:0.01f}% {temperature or -1:0.01f}\x00C"
-        while util.currently_processing["scroll"]:
+        while util.currently_processing["scroll"] or not util.PROGRAM_IS_RUNNING:
+            # Check if the program was terminated before this cycle's completion
             if not util.PROGRAM_IS_RUNNING:
                 return
         util.currently_processing["display_info"] = True
@@ -98,6 +99,7 @@ def main(lcd: CharLCD, adafruit) -> None:
     lcd.create_char(0, degree_sign)
     # file_manager.log("LCD display initialised successfully!")
     update_info_thread = threading.Thread(target=update_display_info, args=[lcd, adafruit])
+    scroll_text_thread = threading.Thread(target=util.scroll_text, args=[lcd, "Pi Temperature"])
 
     # When the user presses Ctrl+C (SIGIGN), Python interprets this as KeyboardInterrupt.
     # This is favourable as it can be caught in the code below (line 118).
@@ -111,27 +113,33 @@ def main(lcd: CharLCD, adafruit) -> None:
 
     # signal.SIGTSTP is a valid signal in unix-based systems, but not on Windows
     try:
-        signal.signal(signal.SIGTSTP, raise_keyboard_interrupt)  # pylint: disable=no-member
+        util.ORIGINAL_SIGTSTP_HANDLER = signal.getsignal(signal.SIGTSTP)
+        signal.signal(signal.SIGTSTP, raise_keyboard_interrupt)
     except AttributeError:
         # Running on Windows
         pass
 
     try:
         intro(lcd)
-        update_info_thread.start()
-        # Blocking call; infinite loop
-        util.scroll_text(lcd, "Pi Temperature")
+        scroll_text_thread.start()
+        update_info_thread.run()
     except KeyboardInterrupt:
         # The user force exited the program
         print()  # Newline so log isn't on same line as user input
-        file_manager.log("Quitting program (ctrl+c)")
+        file_manager.log("Quitting program (KeyboardInterrupt)...")
     finally:
         # Clean up GPIO resources and clear the display
         util.PROGRAM_IS_RUNNING = False
-        if update_info_thread.is_alive():
-            # Wait until the thread completes execution
-            update_info_thread.join()
+        for thread in [scroll_text_thread, update_info_thread]:
+            file_manager.log(f"Waiting for thread '{thread.name}' to terminate...")
+            if thread.is_alive():
+                # Wait until the thread completes execution
+                thread.join()
+        file_manager.log("All processes terminated!")
         lcd.close(clear=True)
+        if util.ORIGINAL_SIGTSTP_HANDLER is not None:
+            # The signal handler was modified in main()
+            signal.signal(signal.SIGTSTP, util.ORIGINAL_SIGTSTP_HANDLER)  # pylint: disable=no-member
 
 
 def instantiate_lcd() -> CharLCD:
@@ -141,5 +149,5 @@ def instantiate_lcd() -> CharLCD:
 
 
 if __name__ == "__main__":
-    print("Started program from main!")
+    file_manager.log("Started program from main!")
     main(instantiate_lcd(), Adafruit_DHT)

@@ -16,10 +16,15 @@ from . import NUM_COLUMNS
 # Boolean indicating whether or not the data update threads should be active
 PROGRAM_IS_RUNNING = True
 
+# The original signal handler for when the user sends the EOF macro
+ORIGINAL_SIGTSTP_HANDLER = None
+
 currently_processing = {
     "scroll": False,
     "display_info": False
 }
+
+
 
 def scroll_text(lcd: CharLCD, text: str, row: int = 0, interval: float = 0.5,
                 max_scrolls: int = None) -> None:
@@ -33,7 +38,8 @@ def scroll_text(lcd: CharLCD, text: str, row: int = 0, interval: float = 0.5,
         if max_scrolls is not None and times_scrolled >= max_scrolls:
             break
         fragment = text.rjust(len(text) + NUM_COLUMNS)[stage:]
-        while currently_processing["display_info"]:
+        while currently_processing["display_info"] or not PROGRAM_IS_RUNNING:
+            # Check if the program was terminated before this cycle's completion
             if not PROGRAM_IS_RUNNING:
                 return
         currently_processing["scroll"] = True
