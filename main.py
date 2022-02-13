@@ -60,7 +60,7 @@ def typewrite(lcd: CharLCD, text: str, interval: float = 0.1) -> None:
 
 def intro(lcd: CharLCD) -> None:
     """Renders the intro text on the LCD."""
-    file_manager.log("Playing intro...")
+    # file_manager.log("Playing intro...")
     lcd.cursor_mode = "blink"
     typewrite(lcd, "Welcome!")
     time.sleep(0.25)
@@ -70,7 +70,7 @@ def intro(lcd: CharLCD) -> None:
     time.sleep(0.5)
     lcd.cursor_mode = "hide"
     lcd.clear()
-    file_manager.log("Completed intro animation.")
+    # file_manager.log("Completed intro animation.")
 
 
 def update_display_info(lcd: CharLCD) -> None:
@@ -79,13 +79,12 @@ def update_display_info(lcd: CharLCD) -> None:
         # Read the values from the GPIO-connected humidity and temperature sensor
         humidity, temperature = Adafruit_DHT.read_retry(Adafruit_DHT.DHT22, SENSOR_PIN)
         # 0x00 is the hex code for the LCD's custom defined character at location 0
-        temp_details = f"{humidity or -1:0.01f}%  {temperature or -1:0.01f}\x00C"
+        temp_details = f"{humidity or -1:0.01f}% {temperature or -1:0.01f}\x00C"
         while util.currently_processing["scroll"]:
             continue
         util.currently_processing["display_info"] = True
         lcd.cursor_pos = (1, 0)
         lcd.write_string(centred(temp_details))
-        lcd.lf()
         util.currently_processing["display_info"] = False
         time.sleep(2)
 
@@ -96,7 +95,7 @@ def main(lcd: CharLCD) -> None:
     lcd.home()
     # Define custom character at location 0 with the above bitmap
     lcd.create_char(0, degree_sign)
-    file_manager.log("LCD display initialised successfully!")
+    # file_manager.log("LCD display initialised successfully!")
     update_info_thread = threading.Thread(target=update_display_info, args=[lcd])
 
     # When the user presses Ctrl+C (SIGIGN), Python interprets this as KeyboardInterrupt.

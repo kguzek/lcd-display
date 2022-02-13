@@ -38,11 +38,16 @@ def scroll_text(lcd: CharLCD, text: str, row: int = 0, interval: float = 0.5,
         lcd.cursor_pos = (row, 0)
         # Ensure string doesn't exceed the maximum length
         lcd.write_string(fragment[:NUM_COLUMNS].ljust(NUM_COLUMNS))
-        lcd.lf()
         currently_processing["scroll"] = False
-        time.sleep(interval)
+        # Determine if the console simulator is being used
+        if CharLCD.__doc__ == "Placeholder class for the LCD.":
+            # Use faster scrolling (10 characters per second)
+            time.sleep(0.1)
+        else:
+            # Use slower scrolling for LCD (defaults to 2 characters per second)
+            time.sleep(interval)
         stage += 1
 
 
 if __name__ == "__main__":
-    scroll_text(CharLCD(), "hello world", interval=0.1, max_scrolls=3)
+    scroll_text(CharLCD(), "hello world", max_scrolls=3)
