@@ -80,9 +80,13 @@ def update_display_info(lcd: CharLCD) -> None:
         humidity, temperature = Adafruit_DHT.read_retry(Adafruit_DHT.DHT22, SENSOR_PIN)
         # 0x00 is the hex code for the LCD's custom defined character at location 0
         temp_details = f"{humidity or -1:0.01f}%  {temperature or -1:0.01f}\x00C"
+        while util.currently_processing["scroll"]:
+            continue
+        util.currently_processing["display_info"] = True
         lcd.cursor_pos = (1, 0)
         lcd.write_string(centred(temp_details))
         lcd.lf()
+        util.currently_processing["display_info"] = False
         time.sleep(2)
 
 

@@ -15,6 +15,10 @@ from . import NUM_COLUMNS
 # Boolean indicating whether or not the data update threads should be active
 PROGRAM_IS_RUNNING = True
 
+currently_processing = {
+    "scroll": False,
+    "display_info": False
+}
 
 def scroll_text(lcd: CharLCD, text: str, row: int = 0, interval: float = 0.5,
                 max_scrolls: int = None) -> None:
@@ -28,10 +32,14 @@ def scroll_text(lcd: CharLCD, text: str, row: int = 0, interval: float = 0.5,
         if max_scrolls is not None and times_scrolled >= max_scrolls:
             break
         fragment = text.rjust(len(text) + NUM_COLUMNS)[stage:]
+        while currently_processing["display_info"]:
+            continue
+        currently_processing["scroll"] = True
         lcd.cursor_pos = (row, 0)
         # Ensure string doesn't exceed the maximum length
         lcd.write_string(fragment[:NUM_COLUMNS].ljust(NUM_COLUMNS))
         lcd.lf()
+        currently_processing["scroll"] = False
         time.sleep(interval)
         stage += 1
 
