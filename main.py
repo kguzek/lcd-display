@@ -134,7 +134,13 @@ def main(lcd: CharLCD, adafruit) -> None:
             update_info_thread.join()
         lcd.close(clear=True)
 
+
+def instantiate_lcd() -> CharLCD:
+    """Returns an instance of the CharLCD class using the specific configs."""
+    return CharLCD(pin_rs=21, pin_rw=20, pin_e=16, pins_data=LCD_PINS,
+         numbering_mode=GPIO.BCM, cols=16, rows=2)
+
+
 if __name__ == "__main__":
     print("Started program from main!")
-    main(CharLCD(pin_rs=21, pin_rw=20,  pin_e=16, pins_data=LCD_PINS,
-         numbering_mode=GPIO.BCM, cols=16, rows=2), Adafruit_DHT)
+    main(instantiate_lcd(), Adafruit_DHT)
