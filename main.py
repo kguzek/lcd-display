@@ -54,7 +54,7 @@ async def typewrite(fragment: str, interval: float = 0.1) -> None:
         lcd.write_string(char)
         if char != " ":
             # Don't sleep if the current character is whitespace
-            asyncio.sleep(interval)
+            await asyncio.sleep(interval)
 
 
 async def intro() -> None:
@@ -62,11 +62,11 @@ async def intro() -> None:
     file_manager.log("Playing intro...")
     lcd.cursor_mode = "blink"
     await typewrite("Welcome!")
-    asyncio.sleep(0.25)
+    await asyncio.sleep(0.25)
     await typewrite(" Made by")
     lcd.cursor_pos = (1, 0)  # Start of second line
     await typewrite(centred("Konrad Guzek", span_entire_line=False))
-    asyncio.sleep(0.5)
+    await asyncio.sleep(0.5)
     lcd.cursor_mode = "hide"
     lcd.clear()
     file_manager.log("Completed intro animation.")
@@ -79,7 +79,7 @@ async def update_display_info() -> None:
     # 0x00 is the hex code for the LCD's custom defined character at location 0
     lcd.write_string(
         centred(f"{humidity or -1:0.01f}%  {temperature or -1:0.01f}\x00C"))
-    asyncio.sleep(2)
+    await asyncio.sleep(2)
     await update_display_info()
 
 
