@@ -4,4 +4,5 @@
 from main import main, instantiate_lcd
 from modules import console_simulation
 
+
 main(instantiate_lcd(), console_simulation.DummyAdafruitDHT)

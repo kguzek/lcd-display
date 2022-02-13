@@ -13,17 +13,18 @@ except ModuleNotFoundError:
 # Local application imports
 from . import NUM_COLUMNS
 
+
 # Boolean indicating whether or not the data update threads should be active
 PROGRAM_IS_RUNNING = True
 
 # The original signal handler for when the user sends the EOF macro
 ORIGINAL_SIGTSTP_HANDLER = None
 
+
 currently_processing = {
     "scroll": False,
     "display_info": False
 }
-
 
 
 def scroll_text(lcd: CharLCD, text: str, row: int = 0, interval: float = 0.5,
