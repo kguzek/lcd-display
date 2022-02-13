@@ -107,8 +107,7 @@ def main(lcd: CharLCD, adafruit) -> None:
 
     def raise_keyboard_interrupt(_signum, _stackframe) -> None:
         """Raises the signal.SIGINT signal which is interpreted as `KeyboardInterrupt`."""
-        signal.raise_signal(signal.SIGINT)
-        # Alternatively: simply `raise KeyboardInterrupt`.
+        raise KeyboardInterrupt
 
     # signal.SIGTSTP is a valid signal in unix-based systems, but not on Windows
     try:
