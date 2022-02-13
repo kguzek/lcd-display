@@ -35,7 +35,7 @@ if __name__ == "__main__":
     class LCD:  # pylint: disable=too-few-public-methods
         """Placeholder class for console demonstration."""
         write_string = print
-    
+
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     loop.run_until_complete(scroll_text(LCD, "hello world", interval=0.1))
