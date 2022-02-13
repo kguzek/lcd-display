@@ -4,10 +4,16 @@
 import time
 
 # Third party imports
-from RPLCD.gpio import CharLCD
+try:
+    from RPLCD.gpio import CharLCD
+except ModuleNotFoundError:
+    from .console_simulation import DummyLCD as CharLCD
 
 # Local application imports
 from . import NUM_COLUMNS
+
+# Boolean indicating whether or not the data update threads should be active
+PROGRAM_IS_RUNNING = True
 
 
 def scroll_text(lcd: CharLCD, text: str, row: int = 0, interval: float = 0.5,
@@ -15,7 +21,7 @@ def scroll_text(lcd: CharLCD, text: str, row: int = 0, interval: float = 0.5,
     """Renders the text on the LCD with a scrolling horizontal animation."""
     times_scrolled = 0
     stage = 0
-    while True:
+    while PROGRAM_IS_RUNNING:
         if stage > NUM_COLUMNS + len(text):
             stage = 1
             times_scrolled += 1
