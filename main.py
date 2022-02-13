@@ -12,15 +12,11 @@ from RPi import GPIO  # pylint: disable=import-error
 from RPLCD.gpio import CharLCD  # pylint: disable=import-error
 
 # Local application imports
-from modules import NUM_COLUMNS, util
+from modules import util, NUM_COLUMNS, SENSOR_PIN
 
 
 # The GPIO pins used for transmitting data to the LCD
 LCD_PINS = [26, 19, 13, 6, 1, 7, 8, 25]
-
-# Initialise temperature sensor
-sensor: int = Adafruit_DHT.DHT22
-SENSOR_PIN = 23
 
 # Declare custom degree symbol bitmap
 degree_sign = (
@@ -35,22 +31,22 @@ degree_sign = (
 )
 
 
-def centred(text: str, num_columns: int = NUM_COLUMNS, span_entire_line: bool = True) -> str:
+def centred(text: str, span_entire_line: bool = True) -> str:
     """Returns a string with the left and right sides padded with the correct number of spaces."""
     # The number of spaces that should be on either side of the string
-    padding = (num_columns - len(text)) // 2
+    padding = (NUM_COLUMNS - len(text)) // 2
     # Make the string a total length of left space + original length
     _centred = text.rjust(padding + len(text))
     if span_entire_line:
         # Make the string the length of the entire line
-        _centred = _centred.ljust(num_columns)
+        _centred = _centred.ljust(NUM_COLUMNS)
     # file_manager.log(f"Centred text: '{_centred}'")
     return _centred
 
 
-async def typewrite(fragment: str, interval: float = 0.1) -> None:
+async def typewrite(text: str, interval: float = 0.1) -> None:
     """Types each character in the string one by one with the specified interval inbetween."""
-    for char in fragment:
+    for char in text:
         lcd.write_string(char)
         if char != " ":
             # Don't sleep if the current character is whitespace
@@ -75,9 +71,12 @@ async def intro() -> None:
 async def update_display_info() -> None:
     """Adds the humidity and temperature information to the second line of the LCD."""
     lcd.cursor_pos = (1, 0)
-    humidity, temperature = Adafruit_DHT.read_retry(sensor, SENSOR_PIN)
+    # Read the values from the GPIO-connected humidity and temperature sensor
+    # 22 is the type of the sensor; same as `Adafruit_DHT.DHT22`
+    result = await loop.run_in_executor(None, Adafruit_DHT.read_retry, 22, SENSOR_PIN)
+    humidity, temperature = result
     # 0x00 is the hex code for the LCD's custom defined character at location 0
-    temp_details= f"{humidity or -1:0.01f}%  {temperature or -1:0.01f}\x00C"
+    temp_details = f"{humidity or -1:0.01f}%  {temperature or -1:0.01f}\x00C"
     lcd.write_string(centred(temp_details))
     await asyncio.sleep(2)
     await update_display_info()

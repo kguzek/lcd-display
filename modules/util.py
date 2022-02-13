@@ -8,7 +8,7 @@ from . import NUM_COLUMNS
 
 
 async def scroll_text(lcd, text: str, row: int = 0, max_num_scrolls: int = 3,
-                      interval: float = 0.1) -> None:
+                      interval: float = 0.5) -> None:
     """Renders the text on the LCD with a scrolling horizontal animation."""
     times_scrolled = 0
 
@@ -38,4 +38,4 @@ if __name__ == "__main__":
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    loop.run_until_complete(scroll_text(LCD, "hello world"))
+    loop.run_until_complete(scroll_text(LCD, "hello world", interval=0.1))
