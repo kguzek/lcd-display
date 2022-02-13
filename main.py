@@ -20,6 +20,8 @@ except ModuleNotFoundError:
 from modules import util, NUM_COLUMNS, SENSOR_PIN
 
 
+# To be displayed scrolling in the top row
+TITLE_TEXT = "Temperature & Humidity"
 # The GPIO pins used for transmitting data to the LCD
 LCD_PINS = [26, 19, 13, 6, 1, 7, 8, 25]
 
@@ -79,7 +81,7 @@ def update_display_info(lcd: CharLCD, adafruit) -> None:
         # Read the values from the GPIO-connected humidity and temperature sensor
         humidity, temperature = adafruit.read_retry(adafruit.DHT22, SENSOR_PIN)
         # 0x00 is the hex code for the LCD's custom defined character at location 0
-        temp_details = f"{humidity or -1:0.01f}% {temperature or -1:0.01f}\x00C"
+        temp_details = f"{temperature or -1:0.01f}{lcd.celsius} {humidity or -1:0.01f}%"
         while util.currently_processing["scroll"] or not util.PROGRAM_IS_RUNNING:
             # Check if the program was terminated before this cycle's completion
             if not util.PROGRAM_IS_RUNNING:
@@ -99,7 +101,7 @@ def main(lcd: CharLCD, adafruit) -> None:
     lcd.create_char(0, degree_sign)
     # file_manager.log("LCD display initialised successfully!")
     update_info_thread = threading.Thread(target=update_display_info, args=[lcd, adafruit])
-    scroll_text_thread = threading.Thread(target=util.scroll_text, args=[lcd, "Pi Temperature"])
+    scroll_text_thread = threading.Thread(target=util.scroll_text, args=[lcd, TITLE_TEXT])
 
     # When the user presses Ctrl+C (SIGIGN), Python interprets this as KeyboardInterrupt.
     # This is favourable as it can be caught in the code below (line 118).
@@ -144,8 +146,13 @@ def main(lcd: CharLCD, adafruit) -> None:
 
 def instantiate_lcd() -> CharLCD:
     """Returns an instance of the CharLCD class using the specific configs."""
-    return CharLCD(pin_rs=21, pin_rw=20, pin_e=16, pins_data=LCD_PINS,
+    lcd = CharLCD(pin_rs=21, pin_rw=20, pin_e=16, pins_data=LCD_PINS,
          numbering_mode=GPIO.BCM, cols=16, rows=2)
+    # Check if it's the console simulation instance
+    if not hasattr(lcd, "celsius"):
+        # The ASCII degree symbol and celsius unit
+        lcd.celsius = "\x00C"
+    return lcd
 
 
 if __name__ == "__main__":

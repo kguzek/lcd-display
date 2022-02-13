@@ -5,17 +5,18 @@ import os
 import random
 import time
 
+
 class DummyAdafruitDHT:  # pylint: disable=too-few-public-methods
     """Placeholder class for the Adafruit_DHT module."""
 
     DHT22: int = 22
 
-    def read_retry(self, _sensor: int = 0, _pin: int = 0) -> None:  # pylint: disable=no-self-use
+    # pylint: disable=no-self-use
+    def read_retry(self, _sensor: int = 0, _pin: int = 0) -> tuple[float, float]:
         """Generate random sample data."""
         humidity = random.randint(300, 600) / 10  # %
         temperature = random.randint(150, 350) / 10  # C
         time.sleep(random.random() * 2)
-
         return humidity, temperature
 
 
@@ -30,6 +31,7 @@ class DummyLCD:
     def __init__(self, *_args, **_kwargs) -> None:
         self.cursor_pos = (0, 0)
         self._write = print
+        self.celsius = "°C"
         top_row = f"┌{'─' * 16}┐\n"
         mid_row = f"│{' ' * 16}│\n"
         end_row = f"└{'─' * 16}┘"
@@ -67,7 +69,6 @@ class DummyLCD:
 
     def create_char(self, *_args, **_kwargs) -> None:
         """Placeholder method."""
-
 
 if __name__ == "__main__":
     import main
