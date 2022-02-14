@@ -5,6 +5,9 @@ import os
 import random
 import time
 
+# Local application imports
+from . import NUM_ROWS, NUM_COLUMNS
+
 
 class DummyAdafruitDHT:  # pylint: disable=too-few-public-methods
     """Placeholder class for the Adafruit_DHT module."""
@@ -16,7 +19,8 @@ class DummyAdafruitDHT:  # pylint: disable=too-few-public-methods
         """Generate random sample data."""
         humidity = random.randint(300, 600) / 10  # %
         temperature = random.randint(150, 350) / 10  # C
-        time.sleep(random.random() * 2)
+        # Sleep up to 0.5 seconds
+        time.sleep(random.random() * 0.5)
         return humidity, temperature
 
 
@@ -32,18 +36,19 @@ class DummyLCD:
         self.cursor_pos = (0, 0)
         self._write = print
         self.celsius = "°C"
-        top_row = f"┌{'─' * 16}┐\n"
-        mid_row = f"│{' ' * 16}│\n"
-        end_row = f"└{'─' * 16}┘"
-        self._write(top_row + mid_row * 2 + end_row, end="", flush=True)
+        top_row = f"┌{'─' * NUM_COLUMNS}┐\n"
+        mid_row = f"│{' ' * NUM_COLUMNS}│\n"
+        end_row = f"└{'─' * NUM_COLUMNS}┘"
+        self._write(top_row + mid_row * NUM_ROWS + end_row, end="", flush=True)
         os.environ["CONSOLE_ENABLED"] = "TRUE"
 
 
     def write_string(self, text: str = "") -> None:
         """Writes the string to the console."""
         row, col = self.cursor_pos
-        prev_line = "\033[F" * (2 - row)
-        next_line = "\n" * (1 - row)
+        row = min(row, NUM_ROWS - 1)
+        prev_line = "\033[F" * (NUM_ROWS - row)
+        next_line = "\n" * (NUM_ROWS - row - 1)
 
         self._write(f"{prev_line}\033[{col + 2}G{text}{next_line}")
         col += len(text)
