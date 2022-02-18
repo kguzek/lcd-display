@@ -6,6 +6,9 @@ import os
 import random
 import time
 
+# Third party imports
+from corny_commons import file_manager
+
 # Local application imports
 from . import NUM_ROWS, NUM_COLUMNS
 
@@ -76,6 +79,8 @@ class DummyLCD:
     def create_char(self, *_args, **_kwargs) -> None:
         """Placeholder method."""
 
+
 if __name__ == "__main__":
     import main
+    file_manager.log("Started program with forced dummy LCD & data!")
     main.main(DummyLCD(), DummyAdafruitDHT)
