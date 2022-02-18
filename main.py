@@ -79,9 +79,10 @@ def update_display_info(lcd: CharLCD, adafruit) -> None:
     """Adds the humidity and temperature information to the second line of the LCD."""
     while util.PROGRAM_IS_RUNNING:
         # Read the values from the GPIO-connected humidity and temperature sensor
-        humidity, temperature = adafruit.read_retry(adafruit.DHT22, SENSOR_PIN)
-        # 0x00 is the hex code for the LCD's custom defined character at location 0
-        temp_details = f"{temperature or -1:0.01f}{lcd.celsius} {humidity or -1:0.01f}%"
+        humidity, temperature = adafruit.read(adafruit.DHT22, SENSOR_PIN)
+        temperature = "??" if temperature is None else f"{temperature:0.01f}"
+        humidity = "??" if humidity is None else f"{humidity:0.01f}"
+        temp_details = f"{temperature}{lcd.celsius} {humidity}%"
         while util.currently_processing["scroll"] or not util.PROGRAM_IS_RUNNING:
             # Check if the program was terminated before this cycle's completion
             if not util.PROGRAM_IS_RUNNING:
@@ -151,6 +152,7 @@ def instantiate_lcd() -> CharLCD:
     # Check if it's the console simulation instance
     if not hasattr(lcd, "celsius"):
         # The ASCII degree symbol and celsius unit
+        # 0x00 is the hex code for the LCD's custom defined character at location 0
         lcd.celsius = "\x00C"
     return lcd
 

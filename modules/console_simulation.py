@@ -12,7 +12,7 @@ class DummyAdafruitDHT:  # pylint: disable=too-few-public-methods
     DHT22: int = 22
 
     # pylint: disable=no-self-use
-    def read_retry(self, _sensor: int = 0, _pin: int = 0) -> tuple[float, float]:
+    def read(self, _sensor: int = 0, _pin: int = 0) -> tuple[float, float]:
         """Generate random sample data."""
         humidity = random.randint(300, 600) / 10  # %
         temperature = random.randint(150, 350) / 10  # C
