@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Module for executing the code printing the output to the console instead of the LCD."""
 
 # Standard library imports

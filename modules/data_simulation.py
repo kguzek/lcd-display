@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Module for showing fake data on the LCD."""
 
 # Local application imports
