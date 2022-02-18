@@ -1,7 +1,6 @@
 """General utility functions."""
 
 # Standard library imports
-import os
 import time
 
 # Third party imports
@@ -11,7 +10,7 @@ except ModuleNotFoundError:
     from .console_simulation import DummyLCD as CharLCD
 
 # Local application imports
-from . import NUM_COLUMNS
+from . import NUM_COLUMNS, SENSOR_PIN, systemp
 
 
 # Boolean indicating whether or not the data update threads should be active
@@ -20,53 +19,83 @@ PROGRAM_IS_RUNNING = True
 # The original signal handler for when the user sends the EOF macro
 ORIGINAL_SIGTSTP_HANDLER = None
 
-
-job_details = {
-    "page": 0,
-    "scrolling": False,
-    "displaying_info": False,
-    "texts_to_scroll": [None, None],
-    "scroll_stage": 0
-}
+PAGE_TITLES = ["Temperature & Humidity", "System Temperature"]
+TIME_PER_PAGE = 15  # seconds
+TIME_PER_TEMPERATURE_UPDATE = 2  # seconds
+TIME_PER_CHARACTER_SCROLL = 500  # milliseconds
 
 
-def scroll_text(lcd: CharLCD, interval: float = 0.5,
-                max_scrolls: int = None) -> None:
-    """Renders the text on the LCD with a scrolling horizontal animation."""
-    times_scrolled = 0
+def centred(text: str, span_entire_line: bool = True) -> str:
+    """Returns a string with the left and right sides padded with the correct number of spaces."""
+    # The number of spaces that should be on either side of the string
+    padding = (NUM_COLUMNS - len(text)) // 2
+    # Make the string a total length of left space + original length
+    _centred = text.rjust(padding + len(text))
+    if span_entire_line:
+        # Make the string the length of the entire line
+        _centred = _centred.ljust(NUM_COLUMNS)
+    # file_manager.log(f"Centred text: '{_centred}'")
+    return _centred
+
+
+def rerender_display(lcd: CharLCD, adafruit) -> None:
+    """Keeps the LCD display contents updated."""
+    current_page = scroll_stage = 0
+    start_time = time.time()
+    last_page_update = last_temperature_update = last_scroll_update = start_time
+
+
+    def rerender_temperature():
+        """Render either the sensor temperature or the system temperature."""
+        if current_page == 0:
+            text = get_sensor_temperature()
+        else:
+            sys_temp = systemp.get_system_temperature()
+            # Mark the temperature as unknown if there was an error while retrieving
+            text = ("??" if sys_temp is None else f"{sys_temp:0.01f}") + lcd.celsius
+        lcd.cursor_pos = (1, 0)
+        lcd.write_string(centred(text))
+
+
+    def get_sensor_temperature():
+        """Reads the values from the GPIO-connected humidity and temperature sensor."""
+        humidity, temperature = adafruit.read(adafruit.DHT22, SENSOR_PIN)
+        temperature = "??" if temperature is None else f"{temperature:0.01f}"
+        humidity = "??" if humidity is None else f"{humidity:0.01f}"
+        return f"{temperature}{lcd.celsius} {humidity}%"
+
+
+    def scroll_text():
+        """Scrolls the text by one position."""
+        nonlocal scroll_stage
+        text: str = PAGE_TITLES[current_page]
+        if scroll_stage > NUM_COLUMNS + len(text):
+            scroll_stage = 0
+        # Add leading spaces to the text according to the scroll stage
+        fragment = text.rjust(len(text) + NUM_COLUMNS)[scroll_stage:]
+        lcd.cursor_pos = (0, 0)
+        # Ensure string doesn't exceed the maximum length and fill the rest with spaces
+        lcd.write_string(fragment[:NUM_COLUMNS].ljust(NUM_COLUMNS))
+        scroll_stage += 1
+
+    rerender_temperature()
+    scroll_text()
     while PROGRAM_IS_RUNNING:
-        texts = job_details["texts_to_scroll"]
-        for text in texts:
-            if text is None:
-                continue
-            while job_details["displaying_info"] or not PROGRAM_IS_RUNNING:
-                # Check if the program was terminated before this cycle's completion
-                if not PROGRAM_IS_RUNNING:
-                    return
-            stage = job_details["scroll_stage"]
-            if stage > NUM_COLUMNS + len(text):
-                stage = 1
-                times_scrolled += 1
-            if max_scrolls is not None and times_scrolled >= max_scrolls:
-                break
-            fragment = text.rjust(len(text) + NUM_COLUMNS)[stage:]
-            job_details["scrolling"] = True
-            lcd.cursor_pos = (texts.index(text), 0)
-            # Ensure string doesn't exceed the maximum length
-            lcd.write_string(fragment[:NUM_COLUMNS].ljust(NUM_COLUMNS))
-            job_details["scrolling"] = False
-
-            stage += 1
-            job_details["scroll_stage"] = stage
-
-            if os.environ.get("CONSOLE_ENABLED"):
-                # Use faster scrolling for console (10 characters per second)
-                time.sleep(0.1)
-            else:
-                # Use slower scrolling for LCD (defaults to 2 characters per second)
-                time.sleep(interval)
-
-
-if __name__ == "__main__":
-    job_details["texts_to_scroll"][0] = "hello world"
-    scroll_text(CharLCD(), max_scrolls=3)
+        now = time.time()
+        # Update the page every 15 seconds
+        if now - last_page_update >= TIME_PER_PAGE:
+            # Switch page
+            last_page_update = now
+            current_page += 1
+            if current_page == len(PAGE_TITLES):
+                current_page = 0
+            scroll_stage = 0
+        # Update the temperature text every 2 seconds
+        if now - last_temperature_update >= TIME_PER_TEMPERATURE_UPDATE:
+            # Update the temperature display
+            last_temperature_update = now
+            rerender_temperature()
+        # Scroll the text every 0.5 seconds
+        if (now - last_scroll_update) * 1000 >= TIME_PER_CHARACTER_SCROLL:
+            last_scroll_update = now
+            scroll_text()
