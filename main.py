@@ -96,9 +96,7 @@ def update_display_info(lcd: CharLCD, adafruit) -> None:
         else:
             sys_temp = systemp.get_system_temperature()
             # Mark the temperature as unknown if there was an error while retrieving
-            text = "??" if sys_temp is None else str(sys_temp)
-            # Append the Celsius sign to the end no matter the result
-            text += lcd.celsius
+            text = ("??" if sys_temp is None else f"{sys_temp:0.01f}") + lcd.celsius
         util.job_details["displaying_info"] = True
         lcd.cursor_pos = (1, 0)
         lcd.write_string(centred(text))
