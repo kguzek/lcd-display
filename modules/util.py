@@ -25,7 +25,8 @@ job_details = {
     "page": 0,
     "scrolling": False,
     "displaying_info": False,
-    "texts_to_scroll": [None, None]
+    "texts_to_scroll": [None, None],
+    "scroll_stage": 0
 }
 
 
@@ -33,7 +34,6 @@ def scroll_text(lcd: CharLCD, interval: float = 0.5,
                 max_scrolls: int = None) -> None:
     """Renders the text on the LCD with a scrolling horizontal animation."""
     times_scrolled = 0
-    stage = 0
     while PROGRAM_IS_RUNNING:
         texts = job_details["texts_to_scroll"]
         for text in texts:
@@ -43,6 +43,7 @@ def scroll_text(lcd: CharLCD, interval: float = 0.5,
                 # Check if the program was terminated before this cycle's completion
                 if not PROGRAM_IS_RUNNING:
                     return
+            stage = job_details["scroll_stage"]
             if stage > NUM_COLUMNS + len(text):
                 stage = 1
                 times_scrolled += 1
@@ -55,13 +56,15 @@ def scroll_text(lcd: CharLCD, interval: float = 0.5,
             lcd.write_string(fragment[:NUM_COLUMNS].ljust(NUM_COLUMNS))
             job_details["scrolling"] = False
 
+            stage += 1
+            job_details["scroll_stage"] = stage
+
             if os.environ.get("CONSOLE_ENABLED"):
                 # Use faster scrolling for console (10 characters per second)
                 time.sleep(0.1)
             else:
                 # Use slower scrolling for LCD (defaults to 2 characters per second)
                 time.sleep(interval)
-            stage += 1
 
 
 if __name__ == "__main__":

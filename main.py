@@ -91,13 +91,13 @@ def update_display_info(lcd: CharLCD, adafruit) -> None:
             # Check if the program was terminated before this cycle's completion
             if not util.PROGRAM_IS_RUNNING:
                 return
+        util.job_details["displaying_info"] = True
         if util.job_details["page"] == 0:
             text = get_sensor_temperature()
         else:
             sys_temp = systemp.get_system_temperature()
             # Mark the temperature as unknown if there was an error while retrieving
             text = ("??" if sys_temp is None else f"{sys_temp:0.01f}") + lcd.celsius
-        util.job_details["displaying_info"] = True
         lcd.cursor_pos = (1, 0)
         lcd.write_string(centred(text))
         util.job_details["displaying_info"] = False
@@ -116,6 +116,8 @@ def manage_pages():
             # Go back to the first page if this was the last one
             page = 0
         util.job_details["page"] = page
+        # Reset the scrolling animation
+        util.job_details["scroll_stage"] = 0
 
 
 def main(lcd: CharLCD, adafruit) -> None:
