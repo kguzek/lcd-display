@@ -20,7 +20,7 @@ except ModuleNotFoundError:
 from modules import util, systemp, NUM_ROWS, NUM_COLUMNS, SENSOR_PIN
 
 
-TIME_PER_PAGE = 5  # seconds
+TIME_PER_PAGE = 15  # seconds
 # To be displayed scrolling in the top row
 PAGE_TITLES = ["Temperature & Humidity", "System Temperature"]
 # The GPIO pins used for transmitting data to the LCD
@@ -109,7 +109,7 @@ def manage_pages():
     while util.PROGRAM_IS_RUNNING:
         page: int = util.job_details["page"]
         util.job_details["texts_to_scroll"][0] = PAGE_TITLES[page]
-        time.sleep(10)
+        time.sleep(TIME_PER_PAGE)
         # Go to the next page
         page += 1
         if page >= len(PAGE_TITLES):
