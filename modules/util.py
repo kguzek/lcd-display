@@ -21,42 +21,49 @@ PROGRAM_IS_RUNNING = True
 ORIGINAL_SIGTSTP_HANDLER = None
 
 
-currently_processing = {
-    "scroll": False,
-    "display_info": False
+job_details = {
+    "page": 0,
+    "scrolling": False,
+    "displaying_info": False,
+    "texts_to_scroll": [None, None]
 }
 
 
-def scroll_text(lcd: CharLCD, text: str, row: int = 0, interval: float = 0.5,
+def scroll_text(lcd: CharLCD, interval: float = 0.5,
                 max_scrolls: int = None) -> None:
     """Renders the text on the LCD with a scrolling horizontal animation."""
     times_scrolled = 0
     stage = 0
     while PROGRAM_IS_RUNNING:
-        if stage > NUM_COLUMNS + len(text):
-            stage = 1
-            times_scrolled += 1
-        if max_scrolls is not None and times_scrolled >= max_scrolls:
-            break
-        fragment = text.rjust(len(text) + NUM_COLUMNS)[stage:]
-        while currently_processing["display_info"] or not PROGRAM_IS_RUNNING:
-            # Check if the program was terminated before this cycle's completion
-            if not PROGRAM_IS_RUNNING:
-                return
-        currently_processing["scroll"] = True
-        lcd.cursor_pos = (row, 0)
-        # Ensure string doesn't exceed the maximum length
-        lcd.write_string(fragment[:NUM_COLUMNS].ljust(NUM_COLUMNS))
-        currently_processing["scroll"] = False
+        texts = job_details["texts_to_scroll"]
+        for text in texts:
+            if text is None:
+                continue
+            while job_details["displaying_info"] or not PROGRAM_IS_RUNNING:
+                # Check if the program was terminated before this cycle's completion
+                if not PROGRAM_IS_RUNNING:
+                    return
+            if stage > NUM_COLUMNS + len(text):
+                stage = 1
+                times_scrolled += 1
+            if max_scrolls is not None and times_scrolled >= max_scrolls:
+                break
+            fragment = text.rjust(len(text) + NUM_COLUMNS)[stage:]
+            job_details["scrolling"] = True
+            lcd.cursor_pos = (texts.index(text), 0)
+            # Ensure string doesn't exceed the maximum length
+            lcd.write_string(fragment[:NUM_COLUMNS].ljust(NUM_COLUMNS))
+            job_details["scrolling"] = False
 
-        if os.environ.get("CONSOLE_ENABLED"):
-            # Use faster scrolling for console (10 characters per second)
-            time.sleep(0.1)
-        else:
-            # Use slower scrolling for LCD (defaults to 2 characters per second)
-            time.sleep(interval)
-        stage += 1
+            if os.environ.get("CONSOLE_ENABLED"):
+                # Use faster scrolling for console (10 characters per second)
+                time.sleep(0.1)
+            else:
+                # Use slower scrolling for LCD (defaults to 2 characters per second)
+                time.sleep(interval)
+            stage += 1
 
 
 if __name__ == "__main__":
-    scroll_text(CharLCD(), "hello world", max_scrolls=3)
+    job_details["texts_to_scroll"][0] = "hello world"
+    scroll_text(CharLCD(), max_scrolls=3)

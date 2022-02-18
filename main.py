@@ -17,11 +17,12 @@ except ModuleNotFoundError:
     from modules.console_simulation import DummyGPIO as GPIO, DummyLCD as CharLCD
 
 # Local application imports
-from modules import util, NUM_COLUMNS, SENSOR_PIN
+from modules import util, systemp, NUM_COLUMNS, SENSOR_PIN
 
 
+TIME_PER_PAGE = 5  # seconds
 # To be displayed scrolling in the top row
-TITLE_TEXT = "Temperature & Humidity"
+PAGE_TITLES = ["Temperature & Humidity", "System Temperature"]
 # The GPIO pins used for transmitting data to the LCD
 LCD_PINS = [26, 19, 13, 6, 1, 7, 8, 25]
 
@@ -77,21 +78,46 @@ def intro(lcd: CharLCD) -> None:
 
 def update_display_info(lcd: CharLCD, adafruit) -> None:
     """Adds the humidity and temperature information to the second line of the LCD."""
-    while util.PROGRAM_IS_RUNNING:
-        # Read the values from the GPIO-connected humidity and temperature sensor
+
+    def get_sensor_temperature():
+        """Reads the values from the GPIO-connected humidity and temperature sensor."""
         humidity, temperature = adafruit.read(adafruit.DHT22, SENSOR_PIN)
         temperature = "??" if temperature is None else f"{temperature:0.01f}"
         humidity = "??" if humidity is None else f"{humidity:0.01f}"
-        temp_details = f"{temperature}{lcd.celsius} {humidity}%"
-        while util.currently_processing["scroll"] or not util.PROGRAM_IS_RUNNING:
+        return f"{temperature}{lcd.celsius} {humidity}%"
+
+    while util.PROGRAM_IS_RUNNING:
+        while util.job_details["scrolling"] or not util.PROGRAM_IS_RUNNING:
             # Check if the program was terminated before this cycle's completion
             if not util.PROGRAM_IS_RUNNING:
                 return
-        util.currently_processing["display_info"] = True
+        if util.job_details["page"] == 0:
+            text = get_sensor_temperature()
+        else:
+            sys_temp = systemp.get_system_temperature()
+            # Mark the temperature as unknown if there was an error while retrieving
+            text = "??" if sys_temp is None else sys_temp
+            # Append the Celsius sign to the end no matter the result
+            text += lcd.celsius
+        util.job_details["displaying_info"] = True
         lcd.cursor_pos = (1, 0)
-        lcd.write_string(centred(temp_details))
-        util.currently_processing["display_info"] = False
+        lcd.write_string(centred(text))
+        util.job_details["displaying_info"] = False
         time.sleep(2)
+
+
+def manage_pages():
+    """Switches between pages in even intervals."""
+    while util.PROGRAM_IS_RUNNING:
+        page: int = util.job_details["page"]
+        util.job_details["texts_to_scroll"][0] = PAGE_TITLES[page]
+        time.sleep(10)
+        # Go to the next page
+        page += 1
+        if page >= len(PAGE_TITLES):
+            # Go back to the first page if this was the last one
+            page = 0
+        util.job_details["page"] = page
 
 
 def main(lcd: CharLCD, adafruit) -> None:
@@ -102,7 +128,7 @@ def main(lcd: CharLCD, adafruit) -> None:
     lcd.create_char(0, degree_sign)
     # file_manager.log("LCD display initialised successfully!")
     update_info_thread = threading.Thread(target=update_display_info, args=[lcd, adafruit])
-    scroll_text_thread = threading.Thread(target=util.scroll_text, args=[lcd, TITLE_TEXT])
+    scroll_text_thread = threading.Thread(target=util.scroll_text, args=[lcd])
 
     # When the user presses Ctrl+C (SIGIGN), Python interprets this as KeyboardInterrupt.
     # This is favourable as it can be caught in the code below (line 118).
@@ -124,8 +150,10 @@ def main(lcd: CharLCD, adafruit) -> None:
 
     try:
         intro(lcd)
+
         scroll_text_thread.start()
-        update_info_thread.run()
+        update_info_thread.start()
+        manage_pages()
     except KeyboardInterrupt:
         # The user force exited the program
         print()  # Newline so log isn't on same line as user input
