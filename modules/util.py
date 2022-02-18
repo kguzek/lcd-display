@@ -33,7 +33,7 @@ def centred(text: str, span_entire_line: bool = True) -> str:
     _centred = text.rjust(padding + len(text))
     if span_entire_line:
         # Make the string the length of the entire line
-        _centred = _centred.ljust(NUM_COLUMNS)
+        return _centred.ljust(NUM_COLUMNS)
     # file_manager.log(f"Centred text: '{_centred}'")
     return _centred
 
@@ -42,27 +42,30 @@ def rerender_display(lcd: CharLCD, adafruit) -> None:
     """Keeps the LCD display contents updated."""
     scroll_stage = current_page = last_temperature_update = last_scroll_update = 0
 
-    def rerender_temperature():
+    def rerender_temperature() -> None:
         """Render either the sensor temperature or the system temperature."""
         if current_page == 0:
             text = get_sensor_temperature()
         else:
             sys_temp = systemp.get_system_temperature()
             # Mark the temperature as unknown if there was an error while retrieving
-            text = ("??" if sys_temp is None else f"{sys_temp:0.01f}") + lcd.celsius
+            text = None if sys_temp is None else f"{sys_temp:0.01f}{lcd.celsius}"
+        # Don't update the display if the temperature was not retrieved
+        if text is None:
+            return
         lcd.cursor_pos = (1, 0)
         lcd.write_string(centred(text))
 
 
-    def get_sensor_temperature():
+    def get_sensor_temperature() -> str or None:
         """Reads the values from the GPIO-connected humidity and temperature sensor."""
         humidity, temperature = adafruit.read(adafruit.DHT22, SENSOR_PIN)
-        temperature = "??" if temperature is None else f"{temperature:0.01f}"
-        humidity = "??" if humidity is None else f"{humidity:0.01f}"
-        return f"{temperature}{lcd.celsius} {humidity}%"
+        if temperature is None or humidity is None:
+            return None
+        return f"{temperature:0.01f}{lcd.celsius} {humidity:0.01f}%"
 
 
-    def scroll_text():
+    def scroll_text() -> None:
         """Scrolls the text by one position."""
         nonlocal scroll_stage
         text: str = PAGE_TITLES[current_page]
@@ -82,6 +85,10 @@ def rerender_display(lcd: CharLCD, adafruit) -> None:
             current_page += 1
             if current_page == len(PAGE_TITLES):
                 current_page = 0
+            lcd.cursor_pos = (1, 0)
+            lcd.write_string(centred("Loading..."))
+            # Scroll the text so the first character is already visible
+            scroll_text()
         # Scroll the title text every 0.75 seconds
         if (now - last_scroll_update) * 1000 >= TIME_PER_CHARACTER_SCROLL:
             last_scroll_update = now
