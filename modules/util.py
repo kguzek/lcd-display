@@ -1,4 +1,5 @@
 """General utility functions."""
+# pyright: reportMissingImports=false
 
 # Standard library imports
 import time
@@ -20,9 +21,8 @@ PROGRAM_IS_RUNNING = True
 ORIGINAL_SIGTSTP_HANDLER = None
 
 PAGE_TITLES = ["Temperature & Humidity", "System Temperature"]
-TIME_PER_PAGE = 15  # seconds
 TIME_PER_TEMPERATURE_UPDATE = 2  # seconds
-TIME_PER_CHARACTER_SCROLL = 500  # milliseconds
+TIME_PER_CHARACTER_SCROLL = 650  # milliseconds
 
 
 def centred(text: str, span_entire_line: bool = True) -> str:
@@ -40,10 +40,7 @@ def centred(text: str, span_entire_line: bool = True) -> str:
 
 def rerender_display(lcd: CharLCD, adafruit) -> None:
     """Keeps the LCD display contents updated."""
-    current_page = scroll_stage = 0
-    start_time = time.time()
-    last_page_update = last_temperature_update = last_scroll_update = start_time
-
+    scroll_stage = current_page = last_temperature_update = last_scroll_update = 0
 
     def rerender_temperature():
         """Render either the sensor temperature or the system temperature."""
@@ -69,8 +66,6 @@ def rerender_display(lcd: CharLCD, adafruit) -> None:
         """Scrolls the text by one position."""
         nonlocal scroll_stage
         text: str = PAGE_TITLES[current_page]
-        if scroll_stage > NUM_COLUMNS + len(text):
-            scroll_stage = 0
         # Add leading spaces to the text according to the scroll stage
         fragment = text.rjust(len(text) + NUM_COLUMNS)[scroll_stage:]
         lcd.cursor_pos = (0, 0)
@@ -78,24 +73,21 @@ def rerender_display(lcd: CharLCD, adafruit) -> None:
         lcd.write_string(fragment[:NUM_COLUMNS].ljust(NUM_COLUMNS))
         scroll_stage += 1
 
-    rerender_temperature()
-    scroll_text()
     while PROGRAM_IS_RUNNING:
-        now = time.time()
-        # Update the page every 15 seconds
-        if now - last_page_update >= TIME_PER_PAGE:
+        now = time.time()  # Current time in seconds
+        # Update the page once the text has scrolled to the end
+        if scroll_stage > NUM_COLUMNS + len(PAGE_TITLES[current_page]):
             # Switch page
-            last_page_update = now
+            scroll_stage = 1
             current_page += 1
             if current_page == len(PAGE_TITLES):
                 current_page = 0
-            scroll_stage = 0
+        # Scroll the title text every 0.75 seconds
+        if (now - last_scroll_update) * 1000 >= TIME_PER_CHARACTER_SCROLL:
+            last_scroll_update = now
+            scroll_text()
         # Update the temperature text every 2 seconds
         if now - last_temperature_update >= TIME_PER_TEMPERATURE_UPDATE:
             # Update the temperature display
             last_temperature_update = now
             rerender_temperature()
-        # Scroll the text every 0.5 seconds
-        if (now - last_scroll_update) * 1000 >= TIME_PER_CHARACTER_SCROLL:
-            last_scroll_update = now
-            scroll_text()

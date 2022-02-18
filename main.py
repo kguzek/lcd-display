@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """A temperature controller for the Raspberry Pi made by Konrad Guzek."""
+# pyright: reportMissingImports=false
 
 # Standard library imports
 import signal
