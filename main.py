@@ -17,7 +17,7 @@ except ModuleNotFoundError:
     from modules.console_simulation import DummyGPIO as GPIO, DummyLCD as CharLCD
 
 # Local application imports
-from modules import util, systemp, NUM_COLUMNS, SENSOR_PIN
+from modules import util, systemp, NUM_ROWS, NUM_COLUMNS, SENSOR_PIN
 
 
 TIME_PER_PAGE = 5  # seconds
@@ -127,8 +127,8 @@ def main(lcd: CharLCD, adafruit) -> None:
     # Define custom character at location 0 with the above bitmap
     lcd.create_char(0, degree_sign)
     # file_manager.log("LCD display initialised successfully!")
-    update_info_thread = threading.Thread(target=update_display_info, args=[lcd, adafruit])
     scroll_text_thread = threading.Thread(target=util.scroll_text, args=[lcd])
+    update_info_thread = threading.Thread(target=update_display_info, args=[lcd, adafruit])
 
     # When the user presses Ctrl+C (SIGIGN), Python interprets this as KeyboardInterrupt.
     # This is favourable as it can be caught in the code below (line 118).
@@ -176,7 +176,7 @@ def main(lcd: CharLCD, adafruit) -> None:
 def instantiate_lcd() -> CharLCD:
     """Returns an instance of the CharLCD class using the specific configs."""
     lcd = CharLCD(pin_rs=21, pin_rw=20, pin_e=16, pins_data=LCD_PINS,
-         numbering_mode=GPIO.BCM, cols=16, rows=2)
+         numbering_mode=GPIO.BCM, cols=NUM_COLUMNS, rows=NUM_ROWS)
     # Check if it's the console simulation instance
     if not hasattr(lcd, "celsius"):
         # The ASCII degree symbol and celsius unit
