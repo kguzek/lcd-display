@@ -97,10 +97,12 @@ def main(lcd: CharLCD, adafruit) -> None:
         # Clean up GPIO resources and clear the display
         util.PROGRAM_IS_RUNNING = False
         file_manager.log("All processes terminated!")
+        lcd.cursor_mode = "none"
         lcd.close(clear=True)
         if util.ORIGINAL_SIGTSTP_HANDLER is not None:
             # The signal handler was modified in main()
             signal.signal(signal.SIGTSTP, util.ORIGINAL_SIGTSTP_HANDLER)  # pylint: disable=no-member
+        GPIO.cleanup()
 
 
 def instantiate_lcd() -> CharLCD:
