@@ -107,7 +107,7 @@ def main(lcd: CharLCD, adafruit) -> None:
 
 def instantiate_lcd() -> CharLCD:
     """Returns an instance of the CharLCD class using the specific configs."""
-    lcd = CharLCD(pins_data=LCD_PINS, cols=NUM_COLUMNS, rows=NUM_ROWS,
+    lcd = CharLCD(pins_data=LCD_PINS, cols=NUM_COLUMNS, rows=NUM_ROWS, numbering_mode=GPIO.BOARD,
                   pin_backlight=40, backlight_mode="active_high")
     # Check if it's the console simulation instance
     if not hasattr(lcd, "celsius"):
