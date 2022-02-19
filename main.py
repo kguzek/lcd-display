@@ -21,7 +21,7 @@ from modules import util, NUM_ROWS, NUM_COLUMNS
 
 
 # The GPIO pins used for transmitting data to the LCD
-LCD_PINS = [37, 35, 33, 31, 28, 26, 24, 22]
+LCD_PINS = [26, 19, 13, 6, 1, 7, 8, 25]
 
 # Declare custom degree symbol bitmap
 degree_sign = (
@@ -107,8 +107,8 @@ def main(lcd: CharLCD, adafruit) -> None:
 
 def instantiate_lcd() -> CharLCD:
     """Returns an instance of the CharLCD class using the specific configs."""
-    lcd = CharLCD(numbering_mode=GPIO.BOARD, pin_rs=15, pin_rw=18, pin_e=16, pins_data=LCD_PINS,
-                  pin_backlight=40, backlight_mode="active_high", rows=NUM_ROWS, cols=NUM_COLUMNS)
+    lcd = CharLCD(pin_rs=21, pin_rw=20, pin_e=16, pin_backlight=24, pins_data=LCD_PINS,
+         numbering_mode=GPIO.BCM, cols=NUM_COLUMNS, rows=NUM_ROWS, backlight_mode="active_high")
     # Check if it's the console simulation instance
     if not hasattr(lcd, "celsius"):
         # The ASCII degree symbol and celsius unit
