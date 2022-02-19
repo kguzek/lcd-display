@@ -107,8 +107,8 @@ def main(lcd: CharLCD, adafruit) -> None:
 
 def instantiate_lcd() -> CharLCD:
     """Returns an instance of the CharLCD class using the specific configs."""
-    lcd = CharLCD(pins_data=LCD_PINS, cols=NUM_COLUMNS, rows=NUM_ROWS, numbering_mode=GPIO.BOARD,
-                  pin_backlight=40, backlight_mode="active_high")
+    lcd = CharLCD(numbering_mode=GPIO.BOARD, pin_rs=15, pin_rw=18, pin_e=16, pins_data=LCD_PINS,
+                  pin_backlight=40, backlight_mode="active_high", rows=NUM_ROWS, cols=NUM_COLUMNS)
     # Check if it's the console simulation instance
     if not hasattr(lcd, "celsius"):
         # The ASCII degree symbol and celsius unit
