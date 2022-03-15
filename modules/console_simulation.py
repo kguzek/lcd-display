@@ -32,6 +32,9 @@ class DummyGPIO:  # pylint: disable=too-few-public-methods
     """Placeholder class for the GPIO interface."""
     BCM: int = 0
 
+    def cleanup():  # pylint:disable=no-method-argument
+        """Dummy method that is called when the program terminates."""
+
 
 class DummyLCD:
     """Placeholder class for the LCD."""
