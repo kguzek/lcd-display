@@ -61,7 +61,7 @@ def main(lcd: CharLCD, adafruit) -> None:
     # file_manager.log("LCD display initialised successfully!")
 
     # When the user presses Ctrl+C (SIGIGN), Python interprets this as KeyboardInterrupt.
-    # This is favourable as it can be caught in the code below (line 118).
+    # This is favourable as it can be caught in the code below (line 84).
     # When the user presses Ctrl+Z (SIGTSTP), Python interprets this as having reached the EOF.
     # To make the program able to catch the user pressing Ctrl+Z, we remap it to raising the
     # KeyboardInterrupt exception.
