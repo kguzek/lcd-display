@@ -8,6 +8,7 @@ import time
 
 # Third-party imports
 from corny_commons import file_manager
+
 try:
     import Adafruit_DHT
     from RPi import GPIO
@@ -24,16 +25,7 @@ from modules import util, NUM_ROWS, NUM_COLUMNS
 LCD_PINS = [21, 20, 16, 12, 1, 7, 8, 25]
 
 # Declare custom degree symbol bitmap
-degree_sign = (
-    0b01100,
-    0b10010,
-    0b10010,
-    0b01100,
-    0b00000,
-    0b00000,
-    0b00000,
-    0b00000
-)
+degree_sign = (0b01100, 0b10010, 0b10010, 0b01100, 0b00000, 0b00000, 0b00000, 0b00000)
 
 
 def typewrite(lcd: CharLCD, text: str, interval: float = 0.1) -> None:
@@ -91,24 +83,33 @@ def main(lcd: CharLCD, adafruit) -> None:
         util.rerender_display(lcd, adafruit)
     except KeyboardInterrupt:
         # The user force exited the program
-        print()  # Newline so log isn't on same line as user input
+        lcd.close()
         file_manager.log("Quitting program (KeyboardInterrupt)...")
     finally:
         # Clean up GPIO resources and clear the display
         util.PROGRAM_IS_RUNNING = False
         file_manager.log("All processes terminated!")
         lcd.cursor_mode = "hide"
-        lcd.close(clear=True)
         if util.ORIGINAL_SIGTSTP_HANDLER is not None:
             # The signal handler was modified in main()
-            signal.signal(signal.SIGTSTP, util.ORIGINAL_SIGTSTP_HANDLER)  # pylint: disable=no-member
+            # pylint: disable=no-member
+            signal.signal(signal.SIGTSTP, util.ORIGINAL_SIGTSTP_HANDLER)
         GPIO.cleanup()
 
 
 def instantiate_lcd() -> CharLCD:
     """Returns an instance of the CharLCD class using the specific configs."""
-    lcd = CharLCD(pin_rs=18, pin_rw=15, pin_e=14, pin_backlight=24, pins_data=LCD_PINS,
-         numbering_mode=GPIO.BCM, cols=NUM_COLUMNS, rows=NUM_ROWS, backlight_mode="active_high")
+    lcd = CharLCD(
+        pin_rs=18,
+        pin_rw=15,
+        pin_e=14,
+        pin_backlight=24,
+        pins_data=LCD_PINS,
+        numbering_mode=GPIO.BCM,
+        cols=NUM_COLUMNS,
+        rows=NUM_ROWS,
+        backlight_mode="active_high",
+    )
     # Check if it's the console simulation instance
     if not hasattr(lcd, "celsius"):
         # The ASCII degree symbol and celsius unit
