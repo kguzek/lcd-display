@@ -1,4 +1,5 @@
 """General utility functions."""
+
 # pyright: reportMissingImports=false
 
 # Standard library imports
@@ -56,14 +57,12 @@ def rerender_display(lcd: CharLCD, adafruit) -> None:
         lcd.cursor_pos = (1, 0)
         lcd.write_string(centred(text))
 
-
-    def get_sensor_temperature() -> str or None:
+    def get_sensor_temperature() -> str | None:
         """Reads the values from the GPIO-connected humidity and temperature sensor."""
         humidity, temperature = adafruit.read(adafruit.DHT22, SENSOR_PIN)
         if temperature is None or humidity is None:
             return None
         return f"{temperature:0.01f}{lcd.celsius} {humidity:0.01f}%"
-
 
     def scroll_text() -> None:
         """Scrolls the text by one position."""

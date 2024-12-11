@@ -10,7 +10,7 @@ BASE_DIR = "/sys/class/thermal/thermal_zone0/"
 ENABLED = os.path.isdir(BASE_DIR)
 
 
-def get_system_temperature() -> float or None:
+def get_system_temperature() -> float | None:
     """Gets the system's CPU temperature."""
     if not ENABLED:
         return None
