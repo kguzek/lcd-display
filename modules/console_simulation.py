@@ -11,7 +11,7 @@ from corny_commons import file_manager
 from corny_commons.console_graphics import Display
 
 # Local application imports
-from . import NUM_ROWS, NUM_COLUMNS
+from . import NUM_COLUMNS, NUM_ROWS
 
 
 class DummyAdafruitDHT:  # pylint: disable=too-few-public-methods

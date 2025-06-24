@@ -14,7 +14,6 @@ except ModuleNotFoundError:
 # Local application imports
 from . import NUM_COLUMNS, SENSOR_PIN, systemp
 
-
 # Boolean indicating whether or not the data update threads should be active
 PROGRAM_IS_RUNNING = True
 
@@ -76,20 +75,21 @@ def rerender_display(lcd: CharLCD, adafruit) -> None:
         scroll_stage += 1
 
     while PROGRAM_IS_RUNNING:
-        now = time.time()  # Current time in seconds
+        now = time.monotonic()
         # Update the page once the text has scrolled to the end
         if scroll_stage > NUM_COLUMNS + len(PAGE_TITLES[current_page]):
             # Switch page
             scroll_stage = 1
             current_page += 1
-            if current_page == len(PAGE_TITLES):
+            if current_page >= len(PAGE_TITLES):
                 current_page = 0
             lcd.cursor_pos = (1, 0)
             lcd.write_string(centred("Loading..."))
             # Scroll the text so the first character is already visible
             scroll_text()
-        # Scroll the title text every 0.75 seconds
-        if (now - last_scroll_update) * 1000 >= TIME_PER_CHARACTER_SCROLL:
+        time_since_last_update = (now - last_scroll_update) * 1000
+        # Scroll the title text every 0.65 seconds
+        if time_since_last_update >= TIME_PER_CHARACTER_SCROLL:
             last_scroll_update = now
             scroll_text()
         # Update the temperature text every 2 seconds

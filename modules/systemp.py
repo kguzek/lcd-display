@@ -7,7 +7,8 @@ import os
 from corny_commons import file_manager
 
 BASE_DIR = "/sys/class/thermal/thermal_zone0/"
-ENABLED = os.path.isdir(BASE_DIR)
+TEMPERATURE_PATH = BASE_DIR + "temp"
+ENABLED = os.path.isdir(BASE_DIR) and os.path.isfile(TEMPERATURE_PATH)
 
 
 def get_system_temperature() -> float | None:
@@ -15,15 +16,14 @@ def get_system_temperature() -> float | None:
     if not ENABLED:
         return None
     try:
-        with open(BASE_DIR + "temp", encoding="utf-8") as file:
+        with open(TEMPERATURE_PATH, encoding="utf-8") as file:
             raw_data = file.read()
     except (ValueError, FileNotFoundError):
         # Invalid temperature data
         return None
-    else:
-        temp = int(raw_data)
-        # Temperature is stored as thousandths of a Celsius degree
-        return temp / 1000
+    temp = int(raw_data)
+    # Temperature is stored as thousandths of a Celsius degree
+    return temp / 1000
 
 
 if __name__ == "__main__":

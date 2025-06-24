@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """A temperature controller for the Raspberry Pi made by Konrad Guzek."""
-# pyright: reportMissingImports=false
+# pyright: reportMissingImports=false, reportMissingModuleSource=false
 
 # Standard library imports
 import signal
@@ -15,11 +15,11 @@ try:
     from RPLCD.gpio import CharLCD
 except ModuleNotFoundError:
     from modules.console_simulation import DummyAdafruitDHT as Adafruit_DHT
-    from modules.console_simulation import DummyGPIO as GPIO, DummyLCD as CharLCD
+    from modules.console_simulation import DummyGPIO as GPIO
+    from modules.console_simulation import DummyLCD as CharLCD
 
 # Local application imports
-from modules import util, NUM_ROWS, NUM_COLUMNS
-
+from modules import NUM_COLUMNS, NUM_ROWS, util
 
 # The GPIO pins used for transmitting data to the LCD
 LCD_PINS = [21, 20, 16, 12, 1, 7, 8, 25]
